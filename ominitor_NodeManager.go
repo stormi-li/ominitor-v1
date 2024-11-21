@@ -70,17 +70,20 @@ func (manager *NodeManager) Handler(w http.ResponseWriter, r *http.Request) {
 
 func (nodeManager *NodeManager) updateWeight(serverType, name, address, weight string) {
 	var register *omiserd.Register
-	defer register.Close()
+	defer func() {
+		recover()
+	}()
 	if serverType == string(omiserd.Config) {
-		register = omiserd.NewClient(nodeManager.opts, omiserd.Server).NewRegister(name, address)
+		register = omiserd.NewClient(nodeManager.opts, omiserd.Config).NewRegister(name, address)
 	}
 	if serverType == string(omiserd.Web) {
-		register = omiserd.NewClient(nodeManager.opts, omiserd.Server).NewRegister(name, address)
+		register = omiserd.NewClient(nodeManager.opts, omiserd.Web).NewRegister(name, address)
 	}
 	if serverType == string(omiserd.Server) {
 		register = omiserd.NewClient(nodeManager.opts, omiserd.Server).NewRegister(name, address)
 	}
 	register.SendMessage(omiserd.Command_update_weight, weight)
+	register.Close()
 }
 
 func (nodeManager *NodeManager) getDetails(serverType, name, address string) map[string]string {

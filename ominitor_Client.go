@@ -17,7 +17,7 @@ type Client struct {
 //go:embed dev/src/*
 var embedSource embed.FS
 
-func (c *Client) Listen(address string) {
+func (c *Client) Start(address string) {
 	c.listen(address, true)
 }
 
