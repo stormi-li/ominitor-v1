@@ -207,7 +207,19 @@
                     return response.json();
                 })
                 .then(data => {
+                    data.sort((a, b) => {
+                        if (a[1] < b[1]) return -1;
+                        if (a[1] > b[1]) return 1;
+                        return 0; // 相等时返回 0
+                    });
+                    data.sort((a, b) => {
+                        if (a[0] < b[0]) return -1;
+                        if (a[0] > b[0]) return 1;
+                        return 0; // 相等时返回 0
+                    });
+
                     currentData = data; // 将返回数据存储到全局变量
+                    console.log(data)
                     displayData(); // 调用显示数据函数
                 })
                 .catch(error => {

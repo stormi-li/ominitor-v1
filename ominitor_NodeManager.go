@@ -43,11 +43,13 @@ func (manager *NodeManager) Handler(w http.ResponseWriter, r *http.Request) {
 	// 以 '/' 分割路径
 	parts := strings.Split(path, "/")
 
-	if parts[0] == command_GetWebNodes {
-		w.Write([]byte(toJsonStr(manager.GetWebNodes())))
-	}
 	if parts[0] == command_GetServerNodes {
-		w.Write([]byte(toJsonStr(manager.GetServerNodes())))
+		var data = manager.GetServerNodes()
+		w.Write([]byte(toJsonStr(data)))
+	}
+	if parts[0] == command_GetWebNodes {
+		var data = manager.GetWebNodes()
+		w.Write([]byte(toJsonStr(data)))
 	}
 	if parts[0] == command_GetConfigNodes {
 		w.Write([]byte(toJsonStr(manager.GetConfigNodes())))
