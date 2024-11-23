@@ -2,6 +2,7 @@ package ominitor
 
 import (
 	"embed"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -53,5 +54,6 @@ func (c *Client) listen(address string, embedModel bool) {
 
 	log.Println("omi web manager server is running on http://" + address)
 
-	http.ListenAndServe(":"+strings.Split(address, ":")[1], nil)
+	err := http.ListenAndServe(":"+strings.Split(address, ":")[1], nil)
+	fmt.Println(err)
 }

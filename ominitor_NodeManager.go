@@ -7,34 +7,52 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/stormi-li/omiserd-v1"
+	omiconst "github.com/stormi-li/omiserd-v1/omiserd_const"
+	discover "github.com/stormi-li/omiserd-v1/omiserd_discover"
+	register "github.com/stormi-li/omiserd-v1/omiserd_register"
 )
 
 type NodeManager struct {
-	serverDiscover *omiserd.Discover
-	webDiscover    *omiserd.Discover
-	configDiscover *omiserd.Discover
+	serverDiscover *discover.Discover
+	webDiscover    *discover.Discover
+	configDiscover *discover.Discover
 	opts           *redis.Options
 }
 
 func NewManager(opts *redis.Options) *NodeManager {
 	return &NodeManager{
-		serverDiscover: omiserd.NewClient(opts, omiserd.Server).NewDiscover(),
-		webDiscover:    omiserd.NewClient(opts, omiserd.Web).NewDiscover(),
-		configDiscover: omiserd.NewClient(opts, omiserd.Config).NewDiscover(),
+		serverDiscover: omiserd.NewClient(opts, omiconst.Server).NewDiscover(),
+		webDiscover:    omiserd.NewClient(opts, omiconst.Web).NewDiscover(),
+		configDiscover: omiserd.NewClient(opts, omiconst.Config).NewDiscover(),
 		opts:           opts,
 	}
 }
 
+func (manager *NodeManager) GetNodes(discover *discover.Discover) map[string]map[string]map[string]string {
+	addMap := discover.GetAll()
+	res := map[string]map[string]map[string]string{}
+	for name, addrs := range addMap {
+		if res[name] == nil {
+			res[name] = map[string]map[string]string{}
+		}
+		for _, addr := range addrs {
+			data := discover.GetData(name, addr)
+			res[name][addr] = data
+		}
+	}
+	return res
+}
+
 func (manager *NodeManager) GetServerNodes() map[string]map[string]map[string]string {
-	return manager.serverDiscover.DiscoverAllServers()
+	return manager.GetNodes(manager.serverDiscover)
 }
 
 func (manager *NodeManager) GetWebNodes() map[string]map[string]map[string]string {
-	return manager.webDiscover.DiscoverAllServers()
+	return manager.GetNodes(manager.webDiscover)
 }
 
 func (manager *NodeManager) GetConfigNodes() map[string]map[string]map[string]string {
-	return manager.configDiscover.DiscoverAllServers()
+	return manager.GetNodes(manager.configDiscover)
 }
 
 func (manager *NodeManager) Handler(w http.ResponseWriter, r *http.Request) {
@@ -71,32 +89,32 @@ func (manager *NodeManager) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (nodeManager *NodeManager) updateWeight(serverType, name, address, weight string) {
-	var register *omiserd.Register
+	var register *register.Register
 	defer func() {
 		recover()
 	}()
-	if serverType == string(omiserd.Config) {
-		register = omiserd.NewClient(nodeManager.opts, omiserd.Config).NewRegister(name, address)
+	if serverType == string(omiconst.Config) {
+		register = omiserd.NewClient(nodeManager.opts, omiconst.Config).NewRegister(name, address)
 	}
-	if serverType == string(omiserd.Web) {
-		register = omiserd.NewClient(nodeManager.opts, omiserd.Web).NewRegister(name, address)
+	if serverType == string(omiconst.Web) {
+		register = omiserd.NewClient(nodeManager.opts, omiconst.Web).NewRegister(name, address)
 	}
-	if serverType == string(omiserd.Server) {
-		register = omiserd.NewClient(nodeManager.opts, omiserd.Server).NewRegister(name, address)
+	if serverType == string(omiconst.Server) {
+		register = omiserd.NewClient(nodeManager.opts, omiconst.Server).NewRegister(name, address)
 	}
-	register.SendMessage(omiserd.Command_update_weight, weight)
-	register.Close()
+	register.SendMessage(omiconst.Command_update_weight, weight)
+	register.RedisClient.Close()
 }
 
 func (nodeManager *NodeManager) getDetails(serverType, name, address string) map[string]string {
 	var data map[string]string
-	if serverType == string(omiserd.Config) {
+	if serverType == string(omiconst.Config) {
 		data = nodeManager.configDiscover.GetData(name, address)
 	}
-	if serverType == string(omiserd.Web) {
+	if serverType == string(omiconst.Web) {
 		data = nodeManager.webDiscover.GetData(name, address)
 	}
-	if serverType == string(omiserd.Server) {
+	if serverType == string(omiconst.Server) {
 		data = nodeManager.serverDiscover.GetData(name, address)
 	}
 	return data
