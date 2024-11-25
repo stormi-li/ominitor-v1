@@ -7,28 +7,25 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/stormi-li/omiserd-v1"
-	omiconst "github.com/stormi-li/omiserd-v1/omiserd_const"
-	discover "github.com/stormi-li/omiserd-v1/omiserd_discover"
-	register "github.com/stormi-li/omiserd-v1/omiserd_register"
 )
 
 type NodeManager struct {
-	serverDiscover *discover.Discover
-	webDiscover    *discover.Discover
-	configDiscover *discover.Discover
+	serverDiscover *omiserd.Discover
+	webDiscover    *omiserd.Discover
+	configDiscover *omiserd.Discover
 	opts           *redis.Options
 }
 
 func NewManager(opts *redis.Options) *NodeManager {
 	return &NodeManager{
-		serverDiscover: omiserd.NewClient(opts, omiconst.Server).NewDiscover(),
-		webDiscover:    omiserd.NewClient(opts, omiconst.Web).NewDiscover(),
-		configDiscover: omiserd.NewClient(opts, omiconst.Config).NewDiscover(),
+		serverDiscover: omiserd.NewClient(opts, omiserd.Server).NewDiscover(),
+		webDiscover:    omiserd.NewClient(opts, omiserd.Web).NewDiscover(),
+		configDiscover: omiserd.NewClient(opts, omiserd.Config).NewDiscover(),
 		opts:           opts,
 	}
 }
 
-func (manager *NodeManager) GetNodes(discover *discover.Discover) map[string]map[string]map[string]string {
+func (manager *NodeManager) GetNodes(discover *omiserd.Discover) map[string]map[string]map[string]string {
 	addMap := discover.GetAll()
 	res := map[string]map[string]map[string]string{}
 	for name, addrs := range addMap {
@@ -89,32 +86,32 @@ func (manager *NodeManager) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (nodeManager *NodeManager) updateWeight(serverType, name, address, weight string) {
-	var register *register.Register
+	var register *omiserd.Register
 	defer func() {
 		recover()
 	}()
-	if serverType == string(omiconst.Config) {
-		register = omiserd.NewClient(nodeManager.opts, omiconst.Config).NewRegister(name, address)
+	if serverType == string(omiserd.Config) {
+		register = omiserd.NewClient(nodeManager.opts, omiserd.Config).NewRegister(name, address)
 	}
-	if serverType == string(omiconst.Web) {
-		register = omiserd.NewClient(nodeManager.opts, omiconst.Web).NewRegister(name, address)
+	if serverType == string(omiserd.Web) {
+		register = omiserd.NewClient(nodeManager.opts, omiserd.Web).NewRegister(name, address)
 	}
-	if serverType == string(omiconst.Server) {
-		register = omiserd.NewClient(nodeManager.opts, omiconst.Server).NewRegister(name, address)
+	if serverType == string(omiserd.Server) {
+		register = omiserd.NewClient(nodeManager.opts, omiserd.Server).NewRegister(name, address)
 	}
-	register.SendMessage(omiconst.Command_update_weight, weight)
-	register.RedisClient.Close()
+	register.SendMessage(omiserd.Command_update_weight, weight)
+	register.Close()
 }
 
 func (nodeManager *NodeManager) getDetails(serverType, name, address string) map[string]string {
 	var data map[string]string
-	if serverType == string(omiconst.Config) {
+	if serverType == string(omiserd.Config) {
 		data = nodeManager.configDiscover.GetData(name, address)
 	}
-	if serverType == string(omiconst.Web) {
+	if serverType == string(omiserd.Web) {
 		data = nodeManager.webDiscover.GetData(name, address)
 	}
-	if serverType == string(omiconst.Server) {
+	if serverType == string(omiserd.Server) {
 		data = nodeManager.serverDiscover.GetData(name, address)
 	}
 	return data

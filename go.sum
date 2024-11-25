@@ -18,3 +18,5 @@ github.com/stormi-li/omiserd-v1 v1.0.2 h1:C5VvPz9yGoNQOI9V1v+AL9VHqjo9li9rmTGifX
 github.com/stormi-li/omiserd-v1 v1.0.2/go.mod h1:X2uGc+Z0CD3HIeYeFdiDsDRfGZvpGahSOGsEZsaAY2Q=
 github.com/stormi-li/omiserd-v1 v1.0.3 h1:sfIL2YCYuL8dneP9SE2wz1uaS3VG12514cf16FzM6aY=
 github.com/stormi-li/omiserd-v1 v1.0.3/go.mod h1:X2uGc+Z0CD3HIeYeFdiDsDRfGZvpGahSOGsEZsaAY2Q=
+github.com/stormi-li/omiserd-v1 v1.0.5 h1:vQ/jJs3lJsP1M4tZJtY8d8ChVsbYcpIg1cY/tXNK99w=
+github.com/stormi-li/omiserd-v1 v1.0.5/go.mod h1:X2uGc+Z0CD3HIeYeFdiDsDRfGZvpGahSOGsEZsaAY2Q=
